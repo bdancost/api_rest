@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const { sequelize } = require("./config/database"); // Importa do novo arquivo de configuração
-const Task = require("./models/Task"); // Importa seu modelo
+const { sequelize, Task } = require("./models"); // Importa do novo arquivo de configuração
 
 const app = express();
 app.use(express.json());

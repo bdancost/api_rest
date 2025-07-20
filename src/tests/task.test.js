@@ -1,18 +1,19 @@
 const request = require("supertest");
-const app = require("../app"); // Importa o app Express
-const Task = require("../models/Task");
+const app = require("../app");
+const { sequelize } = require("../models");
+
+jest.setTimeout(10000); // 10 segundos
+
+beforeAll(async () => {
+  await sequelize.sync({ force: true }); // Cria as tabelas
+  await sequelize.models.Task.create({ title: "Tarefa de Teste" });
+});
+
+afterAll(async () => {
+  await sequelize.close(); // Fecha a conexão
+});
 
 describe("GET /tasks", () => {
-  beforeAll(async () => {
-    // Antes dos testes, insere uma tarefa de teste no banco
-    await Task.create({ title: "Tarefa de Teste" });
-  });
-
-  afterAll(async () => {
-    // Após os testes, limpa o banco
-    await Task.deleteMany();
-  });
-
   it("deve retornar todas as tarefas", async () => {
     const response = await request(app).get("/tasks");
     expect(response.status).toBe(200);

@@ -1,11 +1,24 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 
-// Define o Schema (estrutura) da tarefa
-const TaskSchema = new mongoose.Schema({
-  title: { type: String, required: true }, // Título obrigatório
-  completed: { type: Boolean, default: false }, // Completo? (padrão: false)
-  createdAt: { type: Date, default: Date.now }, // Data de criação
-});
+const Task = sequelize.define(
+  "Task",
+  {
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    completed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+  },
+  {
+    tableName: "tasks",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+  }
+);
 
-// Exporta o modelo "Task" baseado no Schema
-module.exports = mongoose.model("Task", TaskSchema);
+module.exports = Task;

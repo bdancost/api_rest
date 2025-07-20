@@ -1,35 +1,46 @@
 require("dotenv").config();
 const express = require("express");
-const { Sequelize } = require("sequelize");
-
-// Configuração à prova de falhas
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: "postgres",
-    logging: false,
-  }
-);
-
-// Teste de conexão PESADO
-sequelize
-  .authenticate()
-  .then(() => console.log("✅ Conexão com PostgreSQL ESTÁVEL!"))
-  .catch((err) => console.error("💥 ERRO NO BANCO:", err));
+const { sequelize } = require("./config/database"); // Importa do novo arquivo de configuração
+const Task = require("./models/Task"); // Importa seu modelo
 
 const app = express();
 app.use(express.json());
 
-// Rota SIMPLES para teste
+// Conexão com o banco e inicialização do servidor
+async function initializeApp() {
+  try {
+    // Testa a conexão e sincroniza os modelos
+    await sequelize.authenticate();
+    await sequelize.sync(); // Sincroniza modelos com o banco (opcional)
+    console.log("✅ Banco de dados conectado e sincronizado!");
+
+    // Inicia o servidor
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    });
+  } catch (error) {
+    console.error("💥 Falha na inicialização:", error);
+    process.exit(1); // Encerra o processo com erro
+  }
+}
+
+// Rotas
 app.get("/", (req, res) => {
   res.send("🔥 TÁ FUNFANDO!");
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor detonando na porta ${PORT}`);
+// Rota de exemplo usando o modelo Task
+app.get("/tasks", async (req, res) => {
+  try {
+    const tasks = await Task.findAll();
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
+
+// Inicializa a aplicação
+initializeApp();
+
+module.exports = app; // Exporta para testes

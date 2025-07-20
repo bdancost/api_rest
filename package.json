@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/app.js",
-    "test": "jest",
-    "test:watch": "sequelize db:migrate"
+    "migrate": "sequelize db:migrate",
+    "migrate:undo": "sequelize db:migrate:undo",
+    "seed": "sequelize db:seed:all",
+    "test": "NODE_ENV=test jest"
   },
   "keywords": [],
   "author": "",

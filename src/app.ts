@@ -1,9 +1,25 @@
 import "dotenv/config";
 import express, { Request, Response, Application } from "express";
-import { sequelize, Task } from "./models"; // Importa do arquivo de modelos
+import sequelize from "./models"; // Importa do arquivo de modelos
+import Task from "./models/task"; // Importa seu modelo Task
 
 const app: Application = express();
 app.use(express.json());
+
+// Verificação simplificada das variáveis essenciais
+const requiredVars = [
+  "DB_USER",
+  "DB_PASSWORD",
+  "DB_NAME",
+  "DB_HOST",
+  "DB_DIALECT",
+];
+const missingVars = requiredVars.filter((varName) => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error(`❌ Variáveis de ambiente faltando: ${missingVars.join(", ")}`);
+  process.exit(1);
+}
 
 // Interface para tipagem das Tasks (ajuste conforme seu modelo)
 interface ITask {

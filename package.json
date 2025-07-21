@@ -4,11 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/app.js",
-    "migrate": "sequelize db:migrate",
-    "migrate:undo": "sequelize db:migrate:undo",
-    "seed": "sequelize db:seed:all",
-    "test": "NODE_ENV=test jest"
+    "check-env": "ts-node scripts/checkEnv.ts",
+    "dev": "npm run check-env && nodemon --exec ts-node src/app.ts",
+    "start": "npm run check-env && node dist/app.js",
+    "build": "tsc",
+    "migrate": "ts-node node_modules/.bin/sequelize db:migrate",
+    "migrate:undo": "ts-node node_modules/.bin/sequelize db:migrate:undo",
+    "seed": "ts-node node_modules/.bin/sequelize db:seed:all",
+    "test": "NODE_ENV=test jest --config jest.config.ts",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "prepare": "npm run build"
   },
   "keywords": [],
   "author": "",
@@ -24,9 +30,17 @@
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.15",
+    "@types/sequelize": "^4.28.20",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^9.31.0",
     "jest": "^30.0.4",
     "nodemon": "^3.1.10",
     "sequelize-cli": "^6.6.3",
-    "supertest": "^7.1.3"
+    "supertest": "^7.1.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }

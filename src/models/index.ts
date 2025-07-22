@@ -1,86 +1,43 @@
 import fs from "fs";
 import path from "path";
-import { Sequelize, DataTypes, ModelStatic, Model, Dialect } from "sequelize";
+import { Sequelize, DataTypes, ModelStatic, Model } from "sequelize";
 import process from "process";
 
-// ======================================
-// 1. INTERFACES (TYPES)
-// ======================================
-interface BaseDatabaseConfig {
-  port: number;
-  dialect: Dialect;
-  logging?: boolean | ((sql: string, timing?: number) => void); // Opcional
-  pool?: {
-    max: number;
-    min: number;
-    acquire: number;
-    idle: number;
-  };
-  dialectOptions?: Record<string, any>;
-}
-
-interface StandardDatabaseConfig extends BaseDatabaseConfig {
-  database: string;
-  username: string;
-  password: string;
-  host: string;
-}
-
-interface EnvDatabaseConfig extends BaseDatabaseConfig {
-  use_env_variable: string;
-}
-
-type DatabaseConfig = StandardDatabaseConfig | EnvDatabaseConfig;
-
-// Interface estendida para incluir o método associate
-interface ModelStaticWithAssociate<T extends Model> extends ModelStatic<T> {
+// 1. Interface para modelos com `associate`
+interface ModelWithAssociate extends Model {
   associate?: (models: Record<string, ModelStatic<Model>>) => void;
 }
 
-// ======================================
-// 2. CARREGA CONFIGURAÇÃO (COMMONJS)
-// ======================================
+const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || "development";
-const rawConfig = require("../config/database"); // CommonJS
-const config: DatabaseConfig = rawConfig[env];
+const config = require("../config/database")[env]; // CommonJS
 
-if (!config) {
-  throw new Error(`❌ Configuração para o ambiente "${env}" não encontrada!`);
-}
+// 2. Inicialização segura do Sequelize
+const sequelize = new Sequelize(
+  config.database,
+  config.username,
+  config.password,
+  {
+    host: config.host,
+    port: config.port,
+    dialect: config.dialect,
+    logging: config.logging,
+    pool: config.pool,
+    dialectOptions: config.dialectOptions,
+  }
+);
 
-// ======================================
-// 3. INICIALIZA SEQUELIZE
-// ======================================
-const sequelize =
-  "use_env_variable" in config
-    ? new Sequelize(process.env[config.use_env_variable] as string, config)
-    : new Sequelize({
-        database: config.database,
-        username: config.username,
-        password: config.password,
-        host: config.host,
-        port: config.port,
-        dialect: config.dialect,
-        logging: config.logging ?? false, // Fallback para false se undefined
-        pool: config.pool,
-        dialectOptions: config.dialectOptions,
-      });
-
-// ======================================
-// 4. CARREGA MODELOS DINAMICAMENTE
-// ======================================
-// Atualize o tipo do objeto db
-const db: Record<string, ModelStaticWithAssociate<Model>> = {};
+// 3. Carregamento dinâmico dos modelos
+const db: Record<string, ModelStatic<ModelWithAssociate>> = {};
 
 fs.readdirSync(__dirname)
-  .filter((file) => {
-    return (
+  .filter(
+    (file) =>
       file.indexOf(".") !== 0 &&
-      file !== path.basename(__filename) &&
+      file !== basename &&
       file.slice(-3) === ".ts" &&
       file.indexOf(".test.ts") === -1
-    );
-  })
+  )
   .forEach((file) => {
     const model = require(path.join(__dirname, file)).default(
       sequelize,
@@ -89,17 +46,12 @@ fs.readdirSync(__dirname)
     db[model.name] = model;
   });
 
-// ======================================
-// 5. CONFIGURA ASSOCIAÇÕES
-// ======================================
+// 4. Associações (com verificação de tipo)
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
 });
 
-// ======================================
-// 6. EXPORTAÇÕES (COMMONJS)
-// ======================================
 export { sequelize, Sequelize };
 export default sequelize;

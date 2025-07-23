@@ -1,51 +1,64 @@
 import { Request, Response } from "express";
+import db from "../models";
 
-const Task = require("../models/Task");
-
-// Interface para o corpo da requisição de criação
-interface CreateTaskRequest {
-  title: string;
-}
-
-// Interface para a resposta da tarefa (opcional, pode usar do model)
-interface TaskResponse {
-  id: number;
-  title: string;
-  completed: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export const getAllTasks = async (
-  req: Request,
-  res: Response<TaskResponse[] | { error: string }>
-) => {
+export const getAllTasks = async (req: Request, res: Response) => {
   try {
-    const tasks = await Task.findAll();
+    const tasks = await db.Task.findAll();
     res.json(tasks);
-  } catch (err: unknown) {
-    const errorMessage =
-      err instanceof Error ? err.message : "Erro desconhecido";
-    res.status(500).json({ error: errorMessage });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-export const createTask = async (
-  req: Request<{}, {}, CreateTaskRequest>,
-  res: Response<TaskResponse | { error: string }>
-) => {
+export const createTask = async (req: Request, res: Response) => {
   try {
-    const { title } = req.body;
+    const task = await db.Task.create(req.body);
+    res.status(201).json(task);
+  } catch (error) {
+    res.status(400).json({ error: "Bad request" });
+  }
+};
 
-    if (!title) {
-      return res.status(400).json({ error: "Título é obrigatório" });
+// Atualizar uma tarefa existente
+export const updateTask = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, completed } = req.body;
+
+    // Verifica se a tarefa existe
+    const task = await db.Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
     }
 
-    const newTask = await Task.create({ title, completed: false });
-    res.status(201).json(newTask);
-  } catch (err: unknown) {
-    const errorMessage =
-      err instanceof Error ? err.message : "Erro desconhecido";
-    res.status(500).json({ error: errorMessage });
+    // Atualiza apenas os campos fornecidos
+    if (title !== undefined) task.title = title;
+    if (completed !== undefined) task.completed = completed;
+
+    await task.save();
+
+    res.json(task);
+  } catch (error) {
+    console.error("Update task error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Deletar uma tarefa
+export const deleteTask = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const task = await db.Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    await task.destroy();
+
+    res.status(204).send(); // 204 No Content
+  } catch (error) {
+    console.error("Delete task error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

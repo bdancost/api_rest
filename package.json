@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/app.ts",
+    "dev": "nodemon src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "migrate": "sequelize db:migrate",
@@ -12,12 +12,16 @@
     "test": "NODE_ENV=test jest"
   },
   "dependencies": {
+    "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "express-validator": "^6.14.2",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/express-validator": "^2.20.33",
     "@types/node": "^20.11.19",
     "@types/sequelize": "^4.28.20",
     "sequelize-cli": "^6.6.3",

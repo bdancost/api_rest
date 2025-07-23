@@ -1,11 +1,28 @@
-const express = require("express");
-const router = express.Router();
-const taskController = require("../controllers/taskController");
+import { Router } from "express";
+import {
+  getAllTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../controllers/taskController";
+import {
+  validateTaskCreate,
+  validateTaskUpdate,
+  validateTaskId,
+} from "../middleware/validateTask";
 
-// GET /tasks → Lista todas as tarefas
-router.get("/", taskController.getAllTasks);
+const router = Router();
 
-// POST /tasks → Cria uma nova tarefa
-router.post("/", taskController.createTask);
+// Rota GET não precisa de validação de body
+router.get("/", getAllTasks);
 
-module.exports = router;
+// Rota POST valida o corpo da requisição
+router.post("/", validateTaskCreate, createTask);
+
+// Rota PUT valida tanto o ID quanto o body
+router.put("/:id", validateTaskId, validateTaskUpdate, updateTask);
+
+// Rota DELETE valida apenas o ID
+router.delete("/:id", validateTaskId, deleteTask);
+
+export default router;

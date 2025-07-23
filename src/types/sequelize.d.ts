@@ -1,11 +1,11 @@
-import { Model, ModelStatic, ModelAttributes, ModelDefined } from "sequelize";
+import { Model, ModelStatic } from "sequelize";
 
 declare module "sequelize" {
   interface ModelStatic<M extends Model = Model> {
-    associate?: (models: any) => void;
+    associate?: (models: Record<string, ModelStatic<Model>>) => void;
   }
 }
 
-export type SequelizeModel<T extends Model = Model> = ModelStatic<T> & {
-  associate?: (models: Record<string, ModelStatic>) => void;
-} & typeof Model;
+export interface ModelWithAssociate extends Model {
+  // Adicione métodos de instância se necessário
+}

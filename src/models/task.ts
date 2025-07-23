@@ -1,25 +1,29 @@
-import { Sequelize, DataTypes, Model } from "sequelize";
+import { DataTypes, Model, ModelStatic } from "sequelize";
+import sequelize from "../config/database";
 
 interface TaskAttributes {
   id?: number;
   title: string;
-  completed: boolean;
+  completed?: boolean;
 }
 
-interface TaskInstance extends Model<TaskAttributes>, TaskAttributes {}
+class Task extends Model<TaskAttributes> implements TaskAttributes {
+  public id!: number;
+  public title!: string;
+  public completed!: boolean;
 
-// Tipo simplificado e corrigido
-type TaskModelStatic = typeof Model & {
-  new (values?: object, options?: object): TaskInstance;
-  associate?: (models: any) => void;
-};
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
-const Task = (sequelize: Sequelize): TaskModelStatic => {
-  const TaskModel = sequelize.define<TaskInstance>("Task", {
+  static associate: (models: Record<string, ModelStatic<Model>>) => void;
+}
+
+Task.init(
+  {
     id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
       autoIncrement: true,
+      primaryKey: true,
     },
     title: {
       type: DataTypes.STRING,
@@ -29,13 +33,12 @@ const Task = (sequelize: Sequelize): TaskModelStatic => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-  }) as TaskModelStatic;
-
-  TaskModel.associate = (models) => {
-    // Associações aqui
-  };
-
-  return TaskModel;
-};
+  },
+  {
+    sequelize,
+    modelName: "Task",
+    tableName: "tasks",
+  }
+);
 
 export default Task;

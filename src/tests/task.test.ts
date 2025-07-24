@@ -1,14 +1,12 @@
 import request from "supertest";
 import app from "../app";
-import sequelize from "../models";
-import Task from "../models/task"; // Importe seu modelo Task
+import models from "../models"; // Importa tudo de uma vez
+const { sequelize, Task } = models; // Destructuring
 
-jest.setTimeout(10000); // 10 segundos
+jest.setTimeout(10000);
 
 beforeAll(async () => {
-  await sequelize.sync({ force: true }); // Cria as tabelas
-
-  // Cria tarefa de teste com tipagem
+  await sequelize.sync({ force: true }); // Agora vai funcionar
   await Task.create({
     title: "Tarefa de Teste",
     completed: false,
@@ -16,27 +14,20 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await sequelize.close(); // Fecha a conexão
+  await sequelize.close(); // Agora vai fechar a conexão
 });
 
 describe("GET /tasks", () => {
   it("deve retornar todas as tarefas", async () => {
     const response = await request(app)
       .get("/tasks")
-      .expect("Content-Type", /json/); // Adicionado verificação de content-type
+      .expect("Content-Type", /json/);
 
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBeTruthy();
-
-    // Verificação de tipo mais seguro
-    const tasks = response.body as Array<{
-      id: number;
-      title: string;
-      completed: boolean;
-      createdAt?: string;
-      updatedAt?: string;
-    }>;
-
-    expect(tasks[0].title).toBe("Tarefa de Teste");
+    expect(response.body[0]).toMatchObject({
+      title: "Tarefa de Teste",
+      completed: false,
+    });
   });
 });

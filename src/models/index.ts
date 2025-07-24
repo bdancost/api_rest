@@ -1,8 +1,8 @@
 import sequelize from "../config/database";
-import Task from "./task";
+import Task from "../models/task";
 
 const models = {
-  Task: Task,
+  Task,
 };
 
 Object.values(models).forEach((model) => {
@@ -11,5 +11,5 @@ Object.values(models).forEach((model) => {
   }
 });
 
-export { sequelize };
-export default models;
+export { sequelize }; // Named export
+export { Task }; // Named export

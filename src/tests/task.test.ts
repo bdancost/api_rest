@@ -1,12 +1,14 @@
 import request from "supertest";
 import app from "../app";
-import models from "../models"; // Importa tudo de uma vez
-const { sequelize, Task } = models; // Destructuring
+import db from "../models"; // Importa o objeto db
+
+// Destructuring com a nova estrutura
+const { sequelize, Task } = db;
 
 jest.setTimeout(10000);
 
 beforeAll(async () => {
-  await sequelize.sync({ force: true }); // Agora vai funcionar
+  await sequelize.sync({ force: true });
   await Task.create({
     title: "Tarefa de Teste",
     completed: false,
@@ -14,7 +16,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await sequelize.close(); // Agora vai fechar a conexão
+  await sequelize.close();
 });
 
 describe("GET /tasks", () => {

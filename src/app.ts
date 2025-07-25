@@ -31,7 +31,7 @@ db.sequelize
 // { alter: true } faz com que o Sequelize altere as tabelas existentes para corresponder aos modelos
 sequelize;
 db.sequelize
-  .sync({ alter: true })
+  .sync({ force: true })
   .then(() => console.log("Models synchronized")) // Sincronização bem-sucedida
   .catch((err: Error) => console.error("Model sync error:", err)); // Erro na sincronização
 

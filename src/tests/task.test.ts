@@ -16,7 +16,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await sequelize.close();
+  await sequelize.close(); // Fecha a conexão com o banco
+  await new Promise((resolve) => setTimeout(resolve, 500)); // Aguarda finalização
 });
 
 describe("GET /tasks", () => {
